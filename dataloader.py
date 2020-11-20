@@ -41,6 +41,7 @@ class Modelnet40_data(data.Dataset):
         self.lbl_list = []
         self.pc_input_num = pc_input_num
         self.aug = aug
+        self.sel_label = [3]
 
         categorys = glob.glob(os.path.join(pc_root, '*'))
         categorys = [c.split(os.path.sep)[-1] for c in categorys]
@@ -54,8 +55,13 @@ class Modelnet40_data(data.Dataset):
         # names_dict = get_info(npy_list, isView=False)
 
         for _dir in npy_list:
-            self.pc_list.append(_dir)
-            self.lbl_list.append(categorys.index(_dir.split('/')[-3]))
+            if self.sel_label is not None:
+                if categorys.index(_dir.split('/')[-3]) in self.sel_label:
+                    self.pc_list.append(_dir)
+                    self.lbl_list.append(categorys.index(_dir.split('/')[-3]))
+            else:
+                self.pc_list.append(_dir)
+                self.lbl_list.append(categorys.index(_dir.split('/')[-3]))
 
         print(f'{status} data num: {len(self.pc_list)}')
 
@@ -67,7 +73,8 @@ class Modelnet40_data(data.Dataset):
             pc = rotation_point_cloud(pc)
             pc = jitter_point_cloud(pc)
         # print(pc.shape)
-        pc = np.expand_dims(pc.transpose(), axis=2)
+        # pc = np.expand_dims(pc.transpose(), axis=2)
+        pc = pc.transpose()
         return torch.from_numpy(pc).type(torch.FloatTensor), lbl
 
     def __len__(self):
@@ -117,7 +124,8 @@ class Shapenet_data(data.Dataset):
             pc = jitter_point_cloud(pc)
         pad_pc = np.zeros(shape=(self.pc_input_num-pc.shape[0], 3), dtype=float)
         pc = np.concatenate((pc, pad_pc), axis=0)
-        pc = np.expand_dims(pc.transpose(), axis=2)
+        # pc = np.expand_dims(pc.transpose(), axis=2)
+        pc = pc.transpose()
         return torch.from_numpy(pc).type(torch.FloatTensor), lbl
 
     def __len__(self):
@@ -164,7 +172,8 @@ class Scannet_data_h5(data.Dataset):
             pc = rotation_point_cloud(pc)
             pc = jitter_point_cloud(pc)
         # print(pc.shape)
-        pc = np.expand_dims(pc.transpose(), axis=2)
+        # pc = np.expand_dims(pc.transpose(), axis=2)
+        pc = pc.transpose()
         return torch.from_numpy(pc).type(torch.FloatTensor), label
     def __len__(self):
         return self.data.shape[0]

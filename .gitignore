@@ -1,0 +1,4 @@
+wandb/
+trials/
+dataset/
+__pycache__/
